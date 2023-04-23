@@ -47,7 +47,9 @@ object Effects:
 
     => Future is NOT an effect
    */
+
   import scala.concurrent.ExecutionContext.Implicits.global
+
   val aFuture: Future[Int] = Future(42)
 
   /*
@@ -70,6 +72,43 @@ object Effects:
     println("producing effect")
     42
   })
+
+  /**
+   * Exercises - create some IO which
+   *  1. measure the current time of the system
+   *     2. measure the duration of a computation
+   *    - use exercise 1
+   *    - use map/flatMap combinations of MyIO
+   *      3. read something from the console
+   *      4. print something to the console (e.g. "What's your name"), then read, then print a welcome message
+   */
+
+  // 1
+  def currentTime: MyIO[Long] = MyIO {
+    System.currentTimeMillis
+  }
+
+  // 2
+  def measure[A](computation: MyIO[A]): MyIO[(Long, A)] =
+    for {
+      start <- currentTime
+      result <- computation
+      end <- currentTime
+    } yield {
+      (end - start, result)
+    }
+
+  // 3
+  def readConsole: MyIO[String] = MyIO {
+    Console.in.readLine
+  }
+
+  // 4
+  for {
+    _ <- MyIO(() => print("What's your name?"))
+    name <- readConsole
+    _ <- MyIO(() => println(name))
+  } yield ()
 
   def main(args: Array[String]): Unit = {
     anIOWithSideEffects.unsafeRun()
